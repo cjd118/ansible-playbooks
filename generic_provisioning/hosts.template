@@ -1,0 +1,7 @@
+[provisioning]
+
+
+[provisioning:vars]
+#the root ssh key
+ansible_ssh_private_key_file=~/.ssh/ansible
+

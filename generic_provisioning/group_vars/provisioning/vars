@@ -1,0 +1,12 @@
+---
+USERNAME: "cjd"
+PASSWORD: "{{ VAULT_PASSWORD }}"
+PACKAGES:
+  - sudo
+  - fail2ban
+  - git
+  - ca-certificates
+  - iptables-persistent
+PUBLIC_KEYS:
+  - ~/.ssh/ansible.pub
+DOTFILES_REPO: "https://github.com/cjd118/dotfiles.git"

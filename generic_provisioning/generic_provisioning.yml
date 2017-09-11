@@ -1,0 +1,73 @@
+---
+- hosts: provisioning
+  remote_user: root
+
+  tasks:
+  - name: run apt-get update and upgrade
+    apt: 
+      update_cache: yes
+      cache_valid_time: 3600
+      upgrade: safe
+
+  - name: check to see if the prevention of autosaving iptables-persistent rules has already run
+    shell: debconf-show iptables-persistent
+    register: iptables_no_autosave_check
+    changed_when: false
+
+  - name: prevent autosave of existing iptables rules when installing iptables-persistent
+    shell: echo iptables-persistent iptables-persistent/autosave_v4 boolean false | debconf-set-selections && iptables-persistent iptables-persistent/autosave_v6 boolean false | debconf-set-selections
+    when: iptables_no_autosave_check.stdout == ""
+
+  - name: install packages
+    apt:
+      name: "{{ item }}"
+    with_items: "{{ PACKAGES }}"
+
+  - name: check if iptables rules already copied
+    stat: 
+      path: /etc/iptables/rules.v4
+    register: iptables_rules_exist_check
+
+  - name: copy iptables rules
+    copy:
+      src: ./files/iptables-rules.txt
+      dest: /etc/iptables/rules.v4
+    when: iptables_rules_exist_check.stat.exists == False or iptables_rules_exist_check.stat.size == 0
+
+  - name: apply iptables rules now
+    shell: iptables-restore < /etc/iptables/rules.v4
+    when: iptables_rules_exist_check.stat.exists == False or iptables_rules_exist_check.stat.size == 0
+
+  - name: create new user
+    user: 
+      name: "{{ USERNAME }}"
+      password: "{{ PASSWORD }}"
+      shell: /bin/bash
+      update_password: on_create
+      groups: "sudo"
+      append: yes
+
+  - name: add ssh keys for new user
+    authorized_key: 
+      user: "{{ USERNAME }}"
+      key: "{{ lookup('file', item) }}"
+    with_items: "{{ PUBLIC_KEYS }}"
+
+  - name: check if dotfiles are already cloned
+    stat:
+      path: /home/{{ USERNAME }}/dotfiles
+    register: dotfiles_exist_check
+
+  - name: git clone dotfiles
+    git:
+      repo: "{{ DOTFILES_REPO }}"
+      dest: /home/{{ USERNAME }}/dotfiles
+    become: true
+    become_user: "{{ USERNAME }}"
+    when: dotfiles_exist_check.stat.exists == False
+
+  - name: install dotfiles
+    shell: /home/{{ USERNAME }}/dotfiles/install.sh
+    become: true
+    become_user: "{{ USERNAME }}"
+    when: dotfiles_exist_check.stat.exists == False

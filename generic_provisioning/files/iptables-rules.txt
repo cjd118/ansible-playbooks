@@ -1,0 +1,38 @@
+*nat
+:PREROUTING ACCEPT [970319:57093652]
+:POSTROUTING ACCEPT [1072039:71741045]
+:OUTPUT ACCEPT [1072039:71741045]
+COMMIT
+
+*raw
+:PREROUTING ACCEPT [9841432:4160450200]
+:OUTPUT ACCEPT [9627477:2953416579]
+COMMIT
+
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:fail2ban-ssh - [0:0]
+-A INPUT -p tcp -m multiport --dports 22 -j fail2ban-ssh
+-A INPUT -i lo -j ACCEPT
+-A INPUT -d 127.0.0.0/8 ! -i lo -j REJECT --reject-with icmp-port-unreachable
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
+-A INPUT -p icmp -m icmp --icmp-type 8 -j ACCEPT
+-A INPUT -m limit --limit 5/min -j LOG --log-prefix "iptables denied: " --log-level 7
+-A INPUT -j REJECT --reject-with icmp-port-unreachable
+-A FORWARD -j REJECT --reject-with icmp-port-unreachable
+-A OUTPUT -j ACCEPT
+-A fail2ban-ssh -j RETURN
+COMMIT
+
+*mangle
+:PREROUTING ACCEPT [9841422:4160448933]
+:INPUT ACCEPT [9841422:4160448933]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [9627464:2953415717]
+:POSTROUTING ACCEPT [9627464:2953415717]
+COMMIT
+
+
