@@ -7,6 +7,7 @@ A provisioning script for Debian. Includes:
 * Setting up iptables with a default inbound ruleset only allowing port 22
 * Creating a non-root user and adding their public key
 * Setting up dotfiles for the new user
+* Setting the timezone and configuring NTP package to use default server pool
 
 ## How to use
 

@@ -3,6 +3,10 @@
   remote_user: root
 
   tasks:
+  - name: set timezone
+    timezone:
+      name: Europe/London
+
   - name: run apt-get update and upgrade
     apt: 
       update_cache: yes
@@ -38,6 +42,12 @@
     shell: iptables-restore < /etc/iptables/rules.v4
     when: iptables_rules_exist_check.stat.exists == False or iptables_rules_exist_check.stat.size == 0
 
+  - name: copy ntp config - using default server pool rather than debian pool
+    copy:
+      src: ./files/ntp.conf
+      dest: /etc/ntp.conf
+    notify: restart ntp
+
   - name: create new user
     user: 
       name: "{{ USERNAME }}"
@@ -71,3 +81,10 @@
     become: true
     become_user: "{{ USERNAME }}"
     when: dotfiles_exist_check.stat.exists == False
+
+
+  handlers:
+  - name: restart ntp
+    service:
+      name: ntp
+      state: restarted

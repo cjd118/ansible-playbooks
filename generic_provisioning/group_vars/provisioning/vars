@@ -7,6 +7,7 @@ PACKAGES:
   - git
   - ca-certificates
   - iptables-persistent
+  - ntp
 PUBLIC_KEYS:
   - ~/.ssh/ansible.pub
 DOTFILES_REPO: "https://github.com/cjd118/dotfiles.git"
