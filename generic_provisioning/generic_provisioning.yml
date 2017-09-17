@@ -7,6 +7,10 @@
     timezone:
       name: Europe/London
 
+  - name: ensure aptitude is installed for update/upgrade command
+    apt:
+      name: aptitude
+
   - name: run apt-get update and upgrade
     apt: 
       update_cache: yes
